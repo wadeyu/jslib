@@ -100,3 +100,39 @@ TreeDataManager.prototype.getNodesByLevel = function(lvl){
 TreeDataManager.prototype.getNodeById = function(id){
 	return this.idToDataMap[id];
 };
+TreeDataManager.prototype.getFormatData = function(nodes,lvl){
+	var lvl = parseInt(lvl);
+	var nodes = nodes || this.levelNodeData[0];
+	if(isNaN(lvl) || (lvl < 0)){
+		lvl = 9999; //默认返回所有层
+	}
+	if(lvl == 1){
+		return nodes;
+	}
+	var self = this;
+	var fn = function(id,lvl){
+		if(lvl < 1){
+			return [];
+		}
+		var aTmp = self.getChildNodesById(id,false);
+		if(aTmp.length == 0){
+			return [];
+		}
+		if(lvl > 1){
+			for(var i = 0; i < aTmp.length; i++){
+				aTmp[i]["children"] = fn(aTmp[i][self.idName],lvl-1);
+				if(aTmp[i]["children"].length == 0){
+					delete aTmp[i]["children"];
+				}
+			}
+		}
+		return aTmp;
+	};
+	for(var i = 0; i < nodes.length; i++){
+		nodes[i]["children"] = fn(nodes[i][this.idName],lvl-1);
+		if(nodes[i]["children"].length == 0){
+			delete nodes[i]["children"];
+		}
+	}
+	return nodes;
+};
